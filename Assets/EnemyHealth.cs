@@ -1,22 +1,51 @@
 ﻿using UnityEngine;
 
-public class EnemyHealth : MonoBehaviour
+/// <summary>
+/// Enemy Health kế thừa từ Health base class
+/// Có chức năng đếm số enemy còn sống
+/// </summary>
+public class EnemyHealth : Health
 {
-    public GameObject explosionPrefab; // Ô để kéo hiệu ứng nổ vào
+    /// <summary>
+    /// Đếm số lượng enemy còn sống trong game
+    /// </summary>
+    public static int LivingEnemyCount = 0;
+
+    // Khi enemy được spawn, tăng counter
+    private void Awake()
+    {
+        LivingEnemyCount++;
+    }
 
     // Hàm tự chạy khi có vật thể (đạn) đâm vào
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        Die();
+        // Kiểm tra có phải đạn của player không
+        if (collision.CompareTag("Projectile") || collision.CompareTag("PlayerBullet"))
+        {
+            Die();
+        }
     }
 
-    private void Die()
+    /// <summary>
+    /// Override Die để giảm counter khi enemy chết
+    /// </summary>
+    protected override void Die()
     {
-        // Tạo hiệu ứng nổ
-        var explosion = Instantiate(explosionPrefab, transform.position, transform.rotation);
+        // Giảm số lượng enemy còn sống
+        LivingEnemyCount--;
+        
+        // Gọi base.Die() để xử lý explosion và destroy
+        base.Die();
+        
+        Debug.Log($"Enemy died! Remaining enemies: {LivingEnemyCount}");
+    }
 
-        // Xóa nổ sau 1 giây, xóa địch ngay lập tức
-        Destroy(explosion, 1f);
-        Destroy(gameObject);
+    /// <summary>
+    /// Reset counter khi bắt đầu level mới
+    /// </summary>
+    public static void ResetCounter()
+    {
+        LivingEnemyCount = 0;
     }
 }
